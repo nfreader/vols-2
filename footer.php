@@ -27,8 +27,8 @@
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script src="assets/js/moment.js"></script>
-    <script src="assets/js/datetimepicker.js"></script>
+    <script src="assets/js/vendor/moment.js"></script>
+    <script src="assets/js/vendor/datetimepicker.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.17.7/js/jquery.tablesorter.min.js"></script>
     <script src="assets/js/icons.js"></script>
     <script src="assets/js/app.js"></script>

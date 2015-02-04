@@ -15,7 +15,7 @@
   </div>
   <div class="form-group">
     <label for="email">Email Address</label>
-    <input type="text" class="form-control" id="email" placeholder="Email Address" name="email">
+    <input type="email" class="form-control" id="email" placeholder="Email Address" name="email">
   </div>
   <button type="submit" class="btn btn-success">Register</button>
 </form>

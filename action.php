@@ -22,7 +22,9 @@ switch($action) {
     break;
 
   case 'login':
-    $msg = $user->login($data['username'],$data['password']);
+    if(!empty($data)) {
+      $msg = $user->login($data['username'],$data['password']);
+    }
     $include = 'home';
     break;
 

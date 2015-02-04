@@ -56,7 +56,7 @@ class user {
     $db->bind(':username', $username);
     $db->bind(':password', hash('sha512', $salt . $password));
     $db->bind(':email', $email);
-    $db->bind(':salt',$salt);
+    $db->bind(':salt', $salt);
     $db->execute();
     $return[] = array(
       'msg'=>"You have successfully registered as $username! Please wait while an administrator activates your account.",
@@ -106,7 +106,11 @@ class user {
     $db->execute();
     $check = $db->single();
     if ($check == array()) {
-      return "Username or password invalid.";
+      $return[] = array(
+        'msg'=>"Username or password invalid.",
+        'level'=>2
+      );
+      return $return;
     } else {
       $db->query("SELECT id, username, email, rank, status,
       IF(tbl_user.callsign IS NOT NULL, tbl_user.callsign,
