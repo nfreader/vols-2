@@ -33,6 +33,31 @@ switch($action) {
     $include = 'guest';
     break;
 
+  case 'forgotPassword':
+    $include = 'resetPassword';
+    break;
+
+  case 'sendPasswordReset';
+    if(!empty($data)) {
+      $msg = $user->issuePasswordReset($data['email']);
+    }
+    $include = 'home';
+    break;
+
+  case 'resetPassword':
+    $include = 'resetPassword';
+    break;
+
+  case 'changePassword':
+    if(!empty($data)){
+      $msg = $user->resetPassword(
+        $_GET['link'],
+        $data['password'],
+        $data['password-2']);
+    }
+    $include = 'home';
+    break;
+
 //TEAM ACTIONS
 
   case 'viewTeams':

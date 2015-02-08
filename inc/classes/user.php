@@ -40,7 +40,6 @@ class user {
       );
       return $return;  
     }
-
     if ('' === trim($password)) {
       $return[] = array(
         'msg'=>'Password cannot be empty!',
@@ -54,7 +53,7 @@ class user {
       (username, email, password, salt, timestamp) VALUES
       (:username, :email, :password, :salt, NOW())");
     $db->bind(':username', $username);
-    $db->bind(':password', hash('sha512', $salt . $password));
+    $db->bind(':password', password_hash($password));
     $db->bind(':email', $email);
     $db->bind(':salt', $salt);
     $db->execute();
@@ -99,18 +98,18 @@ class user {
     }
   }
 
-  public function logIn($username, $password) {
+  public function login($username, $password) {
     $db = new database();
-    $db->query("SELECT username, salt FROM tbl_user WHERE username = :username");
+    $db->query("SELECT password FROM tbl_user
+      WHERE username = :username");
     $db->bind(':username',$username);
     $db->execute();
-    $check = $db->single();
-    if ($check == array()) {
+    $user = $db->single();
+    if(!password_verify($password, $user->password)) {
       $return[] = array(
-        'msg'=>"Username or password invalid.",
+        'msg'=>"Incorrect password.",
         'level'=>2
       );
-      return $return;
     } else {
       $db->query("SELECT id, username, email, rank, status,
       IF(tbl_user.callsign IS NOT NULL, tbl_user.callsign,
@@ -118,40 +117,32 @@ class user {
       IF(CONCAT(tbl_user.firstname,tbl_user.lastname) IS NOT NULL, CONCAT_WS(' ',tbl_user.firstname, tbl_user.lastname),
       IF(tbl_user.username IS NOT NULL, tbl_user.username, 'zzz')))) AS publicname
       FROM tbl_user
-      WHERE password = :password AND username = :username");
-      $db->bind(':password', hash('sha512', $check->salt . $password));
+      WHERE username = :username");
       $db->bind(':username', $username);
       $db->execute();
       $login = $db->single();
-      if (array() == $login) {
-        $return[] = array(
-          'msg'=>"Username or password invalid",
-          'level'=>2
-          );
-        return $return;
-      } else {
-        $_SESSION['username'] = $login->username;
-        $_SESSION['userid'] = $login->id;
-        $this->id = $login->id;
-        $_SESSION['rank'] = $login->rank;
-        $_SESSION['status'] = $login->status;
-        if($this->isAdmin()){
-          $_SESSION['sudo_mode'] = false;
-        }
-        $_SESSION['publicname'] = $login->publicname;
-        if ($login->status == 0) {
-          $return[] = array(
-            'msg'=>"You are now logged in as $login->username. Your account is awaiting activation.",
-            'level'=>1
-          );
-        } else {
-          $return[] = array(
-            'msg'=>"You are now logged in as $login->username.",
-            'level'=>1
-          );
-        }
-        return $return;
+
+      $_SESSION['username'] = $login->username;
+      $_SESSION['userid'] = $login->id;
+      $this->id = $login->id;
+      $_SESSION['rank'] = $login->rank;
+      $_SESSION['status'] = $login->status;
+      if($this->isAdmin()){
+        $_SESSION['sudo_mode'] = false;
       }
+      $_SESSION['publicname'] = $login->publicname;
+      if ($login->status == 0) {
+        $return[] = array(
+          'msg'=>"You are now logged in as $login->username. Your account is awaiting activation.",
+          'level'=>1
+        );
+      } else {
+        $return[] = array(
+          'msg'=>"You are now logged in as $login->username.",
+          'level'=>1
+        );
+      }
+      return $return;
     }
   }
 
@@ -164,6 +155,174 @@ class user {
     );
     return $return;
   }
+
+  public function issuePasswordReset($email) {
+    $email = $this->getUserByEmail($email);
+    if(!$email) {
+      $return[] = array(
+        'msg'=>"Unable to find the specified user.",
+        'level'=>2
+      );
+      return $return;
+    }
+
+    $link = $this->generatePasswordReset($email->id);
+    if(!$link) {
+      $return[] = array(
+        'msg'=>"Unable to generate a new password reset link.",
+        'level'=>2
+      );
+      return $return;
+    }
+    $to = $email->email;
+    $subject = APP_NAME." password reset";
+    $message = "<strong>$subject</strong><br>--------<br>";
+    $message.= "If you need to reset your passoword for ".APP_NAME." ";
+    $message.= "please click the link below and follow the instructions. ";
+    $message.= "If you did not request a password reset, please disregard ";
+    $message.= "this message.<br>--------<br>";
+    $message.= "<a href='".APP_URL."?action=resetPassword&link=$link'>Reset Password</a> <em>This link will expire in 15 minutes</em>";
+
+    $app = new app();
+    try{
+      $app->systemMail($email->email,$subject,$message);
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Unable to send password reset. ".$e->getMessage(),
+        'level'=>2
+      );
+      return $return;
+    }
+    $return[] = array(
+      'msg'=>"A link to reset your password has been sent.",
+      'level'=>1
+    );
+    return $return; 
+  }
+
+  public function getUserByEmail($email) {
+    $db = new database();
+    $db->query("SELECT id, username, email FROM tbl_user WHERE email = :email");
+    $db->bind(':email',$email);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Unable to find email address.".$e->getMessage(),
+        'level'=>2
+      );
+      return $return; 
+    }
+    return $db->single();
+  }
+
+  public function generatePasswordReset($user) {
+    $link = generatePasswordResetLink();
+    $db = new database();
+    $db->query("INSERT INTO tbl_passwordresets (user, link, timestamp)
+      VALUES (:user, :link, NOW())");
+    $db->bind(':user',$user);
+    $db->bind(':link',$link);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      return false; 
+    }
+    return $link;
+  }
+
+  public function isPasswordResetValid($link) {
+    $db = new database();
+    $db->query("SELECT *,
+      CASE WHEN (tbl_passwordresets.timestamp >= NOW() - INTERVAL 15 MINUTE)
+      THEN 1
+      ELSE 0
+      END AS valid
+      FROM tbl_passwordresets
+      WHERE tbl_passwordresets.link = :link");
+    $db->bind(':link',$link);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      return false; 
+    }
+    $link = $db->single();
+    if(FALSE == $link->valid) {
+      $this->deletePasswordResetLink($link);
+      return false;
+    }
+    return true;
+  }
+
+  public function deletePasswordResetLink($link) {
+    $db = new database();
+    $db->query("DELETE FROM tbl_passwordresets WHERE link = :link");
+    $db->bind(':link',$link);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      return false; 
+    }
+    return true;
+  }
+
+  public function resetPassword($link, $password, $password2) {
+    if ($password != $password2) {
+      $return[] = array(
+        'msg'=>"Passwords must match!",
+        'level'=>2
+      );
+      return $return;
+    }
+    if ('' === trim($password)) {
+      $return[] = array(
+        'msg'=>'Password cannot be empty!',
+        'level'=>2
+      );
+      return $return;
+    } 
+    if (!$this->isPasswordResetValid($link)){
+      $return[] = array(
+        'msg'=>"This link has expired.",
+        'level'=>2
+      );
+      return $return;
+    }
+
+    $db = new database();
+    $db->query("SELECT * FROM tbl_passwordresets WHERE link = :link");
+    $db->bind(':link',$link);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Unable to find password reset. ".$e->getMessage(),
+        'level'=>2
+      );
+      return $return; 
+    }
+    $user = $db->single();
+    $this->deletePasswordResetLink($user->link);
+    $db->query("UPDATE tbl_user SET password = :password
+      WHERE id = :user");
+    $db->bind(':password',password_hash($password,PASSWORD_DEFAULT));
+    $db->bind(':user',$user->user);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Unable to reset password. ".$e->getMessage(),
+        'level'=>2
+      );
+      return $return; 
+    }
+    $return[] = array(
+      'msg'=>"Your password has been reset. Please log in.",
+      'level'=>1
+    );
+    return $return;
+  }
+
 
   public function isAdmin() {
     $db = new database();

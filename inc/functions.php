@@ -172,5 +172,15 @@ function renderBadge($badge, $class='') {
   return $return;
 }
 
+function generatePasswordResetLink(){
+  include ('arrays.php');
+  $words = array_rand($PGPWordList,10);
+  $words = $PGPWordList[$words[0]]."-".
+  $PGPWordList[$words[1]]."-".
+  $PGPWordList[$words[2]]."-".
+  $PGPWordList[$words[3]]."-".
+  $PGPWordList[$words[4]];
+  return strtolower($words);
+}
 
 
