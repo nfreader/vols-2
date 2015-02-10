@@ -77,4 +77,15 @@ class event {
     $db->execute();
     return $db->single();
   }
+
+  public function getEventByShift($shift) {
+    $db = new database();
+    $db->query("SELECT tbl_event.* FROM tbl_event
+      LEFT JOIN tbl_shift ON tbl_event.id = tbl_shift.event
+      WHERE tbl_shift.id = :shift");
+    $db->bind(':shift',$shift);
+    $db->execute();
+    return $db->single();
+  }
+
 }

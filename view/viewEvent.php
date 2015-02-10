@@ -1,6 +1,8 @@
 <?php 
 $event = new event();
 $event = $event->getEvent($_GET['event']);
+$shiftclass = new shift();
+$shifts = $shiftclass->getShifts($event->id);
 ?>
 
 <ol class="breadcrumb">
@@ -22,12 +24,9 @@ echo "<hr />";
 
 echo "<h2>Shifts <small>Shifts in blue are scheduled to begin before or end after their parent event.</small></h2>";
 
-$shift = new shift();
-if ($shift->userCanEdit($event->id)) {
-$shifts = $shift->getShifts($event->id);
 echo tableHeader(array('Team','Start','End','Duration','Slots'));
 foreach ($shifts as $shift) {
-  if ($shift->end <= $event->start || $shift->start >= $event->end) {
+  if (1 == $shift->startsbefore || 1 == $shift->endsafter) {
     $class='info';
   } else {
     $class='';
@@ -39,11 +38,13 @@ foreach ($shifts as $shift) {
     singular($shift->duration,'hour','hours'),
     "<a href='?action=manageShift&shift=$shift->id'>View</a>"),$class);
 }
+
+if ($shiftclass->userCanEdit($event->id)) {
 ?>
 
 <form method="POST" action="<?php echo "?action=addShift&event=$event->id";?>">
   <tr>
-    <td colspan="5"><h3 class="center-block">Add new shift</h3></td>
+    <td colspan="5"><h3 class="text-center">Add new shift</h3></td>
   </tr>
   <tr>
     <td>
@@ -71,7 +72,8 @@ foreach ($shifts as $shift) {
         Create Shift
       </button>
     </td>
-
+  </tr>
+</form>
 
 <?php
 echo tableFooter();

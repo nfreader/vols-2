@@ -190,4 +190,18 @@ switch($action) {
       $include = 'viewBadge';
       break;
 
+//SLOT ACTIONS
+    case 'addSlot':
+      if(!empty($data)) {
+        $slot = new slot();
+        $msg = $slot->addSlot($data['badge'],$_GET['shift']);
+      }
+      $include = 'viewShift';
+      break;
+
+    case 'claimSlot':
+      $slot = new slot();
+      $msg = $slot->claimSlot($_GET['slot']);
+      $include = 'viewShift';
+      break;
 }

@@ -110,6 +110,7 @@ class user {
         'msg'=>"Incorrect password.",
         'level'=>2
       );
+      return $return;
     } else {
       $db->query("SELECT id, username, email, rank, status,
       IF(tbl_user.callsign IS NOT NULL, tbl_user.callsign,
