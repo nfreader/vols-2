@@ -32,6 +32,32 @@ class slot {
     return $return;
   }
 
+  public function deleteSlot($slot) {
+    $shiftdata = new shift();
+    if (!$shiftdata->userCanEdit($this->getSlot($slot)->shift)) {
+      $return[] = array(
+        'msg'=>"You must be a team lead or admin to edit slots.",
+        'level'=>2
+      );
+      return $return;
+    }
+    $db = new database();
+    $db->query("DELETE FROM tbl_userslots WHERE slot = :slot");
+    $db->bind(':slot',$slot);
+    $db->execute();
+    //Delete userslots first because those are foreign key constrained
+    //and mysql will lose its shit if we try to delete something that's
+    //constrained like that. Plus this just makes sense.
+    $db->query("DELETE FROM tbl_slot WHERE id = :slot");
+    $db->bind(':slot',$slot);
+    $db->execute();
+    $return[] = array(
+      'msg'=>"Slot removed. User schedules updated.",
+      'level'=>1
+    );
+    return $return; 
+  }
+
   public function getSlots($shift) {
     $db = new database();
     $db->query("SELECT tbl_slot.id,
@@ -197,4 +223,48 @@ class slot {
     return $return;
   }
 
+  public function reopenSlot($slot, $user) {
+    $db = new database();
+    $db->query("DELETE FROM tbl_userslots
+      WHERE slot = :slot AND user = :user");
+    $db->bind(':slot',$slot);
+    $db->bind(':user',$user);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Something went wrong. Unable to remove user. ".$e->getMessage(),
+        'level'=>2
+      );
+      return $return; 
+    }
+    $return[] = array(
+      'msg'=>"User removed from slot.",
+      'level'=>1
+    );
+    return $return; 
+  }
+
+  public function cancelSlot($slot) {
+    $user = new user();
+    $db = new database();
+    $db->query("DELETE FROM tbl_userslots
+      WHERE slot = :slot AND user = :user");
+    $db->bind(':slot',$slot);
+    $db->bind(':user',$user->id);
+    try {
+      $db->execute();
+    } catch (Exception $e) {
+      $return[] = array(
+        'msg'=>"Something went wrong. Unable to cancel slot. ".$e->getMessage(),
+        'level'=>2
+      );
+      return $return; 
+    }
+    $return[] = array(
+      'msg'=>"Your slot has been cancelled and your schedule updated.",
+      'level'=>1
+    );
+    return $return; 
+  }
 }

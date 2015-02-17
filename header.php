@@ -56,6 +56,7 @@
 
     <?php 
     if (!empty($msg)) {
+      var_dump($msg);
       foreach ($msg as $alert){
         alert($alert);
       }

@@ -22,6 +22,7 @@
           echo "</div></div>";
         }
         echo "</p>";
+        var_dump($_SERVER);
         ?>
       </footer>
     </div>

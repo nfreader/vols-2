@@ -74,10 +74,22 @@ foreach ($slots as $slot) {
     $badge = "None required";
   }
 
+  $claim = '';
+
   if (FALSE == $slot->claimed){
-    $claim = "<a href='?action=claimSlot&slot=$slot->id&shift=$shift->id' class='btn btn-success btn-xs'>Claim Slot ".icon('thumbs-up')."</a>";
+    $claim.= "<a href='?action=claimSlot&slot=$slot->id&shift=$shift->id' class='btn btn-success btn-xs'>Claim Slot ".icon('thumbs-up')."</a>";
   } else {
-    $claim = "Claimed by ".userLink($slot->publicname,$slot->user);
+    $claim.= "Claimed by ".userLink($slot->publicname,$slot->user);
+    if($shiftclass->userCanEdit($event->id)){
+      $claim.= " <a href='?action=reopenSlot&slot=$slot->id&user=$slot->user&shift=$shift->id' class='btn btn-danger btn-xs' title='Remove user from slot'>Remove $slot->publicname ".icon('remove')."</a>";
+    }
+    if($slot->user == $user->id) {
+      $claim.= " <a href='?action=cancelSlot&slot=$slot->id&shift=$shift->id' class='btn btn-danger btn-xs' title='Cancel Slot'>Cancel slot ".icon('remove')."</a>";
+    }
+  }
+
+  if($shiftclass->userCanEdit($event->id)){
+    $claim.= " <a href='?action=deleteSlot&slot=$slot->id&shift=$shift->id' class='btn btn-danger btn-xs' title='Delete Slot'>Delete slot ".icon('remove')."</a>";
   }
 
   echo tablecells(array($badge,$claim));

@@ -3,6 +3,7 @@ $event = new event();
 $event = $event->getEvent($_GET['event']);
 $shiftclass = new shift();
 $shifts = $shiftclass->getShifts($event->id);
+$canedit = $shiftclass->userCanEdit($event->id);
 ?>
 
 <ol class="breadcrumb">
@@ -24,22 +25,37 @@ echo "<hr />";
 
 echo "<h2>Shifts <small>Shifts in blue are scheduled to begin before or end after their parent event.</small></h2>";
 
-echo tableHeader(array('Team','Start','End','Duration','Slots'));
+echo tableHeader(array('Team',
+  'Start',
+  'End',
+  'Duration',
+  'Slots (total/filled)'));
+$i = 0;
+$totalslots = 0;
+$filledslots = 0;
 foreach ($shifts as $shift) {
   if (1 == $shift->startsbefore || 1 == $shift->endsafter) {
     $class='info';
   } else {
     $class='';
   }
+  $count = "($shift->slots/$shift->filled) <a href='?action=manageShift&shift=$shift->id'>View</a>";
+  if ($canedit){
+    $count.=" <a href='?action=deleteShift&shift=$shift->id&event=$shift->event&verify=1' class='btn btn-danger btn-xs' title='Delete Shift'>Delete Shift ".icon('remove')."</a>";
+  }
   echo tableCells(array(
     teamLink($shift->teamname, $shift->teamid),
     timestamp($shift->start), 
     timestamp($shift->end),
     singular($shift->duration,'hour','hours'),
-    "<a href='?action=manageShift&shift=$shift->id'>View</a>"),$class);
+    "$count"),
+  $class);
+  $i++;
+  $totalslots = $totalslots + $shift->slots;
+  $filledslots = $filledslots + $shift->filled;
 }
 
-if ($shiftclass->userCanEdit($event->id)) {
+if ($canedit) {
 ?>
 
 <form method="POST" action="<?php echo "?action=addShift&event=$event->id";?>">
@@ -76,5 +92,6 @@ if ($shiftclass->userCanEdit($event->id)) {
 </form>
 
 <?php
-echo tableFooter();
 }
+
+echo tableFooter();

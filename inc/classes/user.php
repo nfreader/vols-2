@@ -4,11 +4,13 @@ class user {
 
   public $id;
   public $status;
+  public $publicname;
 
   public function __construct() {
     if(isset($_SESSION['userid'])) {
       $this->id = $_SESSION['userid'];
       $this->status = $_SESSION['status'];
+      $this->publicname = $_SESSION['publicname'];
     }
     else {
       return "No session detected";
