@@ -18,9 +18,18 @@ CREATE TABLE `v2_event` (
   `start` datetime NOT NULL,
   `end` datetime NOT NULL,
   `description` longtext,
+  `active` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
+-- Create syntax for TABLE 'v2_passwordresets'
+CREATE TABLE `v2_passwordresets` (
+  `user` int(11) NOT NULL,
+  `link` varchar(64) NOT NULL DEFAULT '',
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Create syntax for TABLE 'v2_session'
 CREATE TABLE `v2_session` (
@@ -39,6 +48,15 @@ CREATE TABLE `v2_shift` (
   `end` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `event` (`event`,`team`,`end`,`start`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
+
+-- Create syntax for TABLE 'v2_slot'
+CREATE TABLE `v2_slot` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `shift` int(11) NOT NULL,
+  `badge` int(11) DEFAULT NULL,
+  `user` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1;
 
 -- Create syntax for TABLE 'v2_team'
@@ -83,6 +101,20 @@ CREATE TABLE `v2_userbadges` (
   KEY `FK2_badge` (`badge`),
   CONSTRAINT `FK2_badge` FOREIGN KEY (`badge`) REFERENCES `v2_badge` (`id`),
   CONSTRAINT `FK2_userbadge` FOREIGN KEY (`user`) REFERENCES `v2_user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- Create syntax for TABLE 'v2_userslots'
+CREATE TABLE `v2_userslots` (
+  `user` int(11) unsigned NOT NULL,
+  `slot` int(11) unsigned NOT NULL,
+  `shift` int(11) unsigned NOT NULL,
+  UNIQUE KEY `user` (`user`,`shift`),
+  UNIQUE KEY `user_2` (`user`,`shift`),
+  KEY `FK2_shift` (`shift`),
+  KEY `FK2_shiftslot` (`slot`),
+  CONSTRAINT `FK2_shiftid` FOREIGN KEY (`shift`) REFERENCES `v2_shift` (`id`),
+  CONSTRAINT `FK2_shiftslot` FOREIGN KEY (`slot`) REFERENCES `v2_slot` (`id`),
+  CONSTRAINT `FK2_shiftuser` FOREIGN KEY (`user`) REFERENCES `v2_user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- Create syntax for TABLE 'v2_userteams'
