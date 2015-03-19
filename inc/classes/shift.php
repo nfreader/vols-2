@@ -27,7 +27,8 @@ class shift {
         $db->execute();
       } catch (Exception $e) {
         $return[] = array(
-          'msg'=>"Something went wrong. Unable to create event. ".$e->getMessage(),
+          'msg'=>"Something went wrong. Unable to create event. ".
+          $e->getMessage(),
           'level'=>2
         );
         return $return; 
@@ -143,7 +144,8 @@ class shift {
       $db->execute();
     } catch (Exception $e) {
       $return[] = array(
-        'msg'=>"Something went wrong. Unable to delete shift. ".$e->getMessage(),
+        'msg'=>"Something went wrong. Unable to delete shift. ".
+        $e->getMessage(),
         'level'=>2
       );
       return $return; 

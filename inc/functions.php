@@ -183,4 +183,36 @@ function generatePasswordResetLink(){
   return strtolower($words);
 }
 
+function modal($content,$id,$title,$confirm) {
+  $closebtn = "<button type='button' class='close' data-dismiss='modal'";
+  $closebtn.= " aria-label='Close'><span aria-hidden='true'>";
+  $closebtn.= "&times;</span></button>";
+
+  $confirmbtn = "<a href='$confirm'";
+  $confirmbtn.= "class='btn btn-danger'>Confirm</a>";
+
+  $cancelbtn = "<a href='#' data-dismiss='modal'";
+  $cancelbtn.= "class='btn btn-primary'>Cancel</a>";
+
+  $modal = "<div class='modal fade' id='$id' tabindex='-1'";
+  $modal.= "role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>";
+  $modal.= "<div class='modal-dialog'>";
+  $modal.= "  <div class='modal-content'>";
+  $modal.= "    <div class='modal-header'>";
+  $modal.= $closebtn;
+  $modal.= "<h4 class='modal-title' id='myModalLabel'>$title</h4>";
+  $modal.= "</div>";
+  $modal.= "<div class='modal-body'>";
+  $modal.= $content;
+  $modal.= "</div>";
+  $modal.= "<div class='modal-footer'>";
+  $modal.= $confirmbtn.$cancelbtn;
+  $modal.= "  </div>";
+  $modal.= "  </div>";
+  $modal.= "</div>";
+  $modal.= "</div>";
+
+  return $modal;
+
+}
 

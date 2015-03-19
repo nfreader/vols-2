@@ -1,5 +1,6 @@
 $('.tip').tooltip();
 $('.sort').tablesorter();
+$('[data-toggle="popover"]').popover();
 $(function () {
     $('#event-start').datetimepicker({
       format: "YYYY-MM-DD HH:mm",

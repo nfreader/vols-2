@@ -69,9 +69,14 @@ class event {
   }
   public function getEvent($event) {
     $db = new database();
-    $db->query("SELECT *,
-        time_format(timediff(end, start),'%H') as duration
+    $db->query("SELECT tbl_event.*,
+        time_format(timediff(tbl_event.end, tbl_event.start),'%H') as duration,
+        GROUP_CONCAT(tbl_shift.id) AS shifts,
+        GROUP_CONCAT(tbl_slot.id) AS slots
         FROM tbl_event
+        LEFT JOIN tbl_shift ON tbl_event.id = tbl_shift.event
+        LEFT JOIN tbl_slot ON tbl_shift.id = tbl_slot.shift
+        LEFT JOIN tbl_userslots ON tbl_slot.id = tbl_userslots.slot
         WHERE tbl_event.id = :event");
     $db->bind(':event',$event);
     $db->execute();
@@ -86,6 +91,25 @@ class event {
     $db->bind(':shift',$shift);
     $db->execute();
     return $db->single();
+  }
+
+  public function cancelEvent($event) {
+    $info = $this->getEvent($event);
+    $user = new user();
+    if(!$user->isAdmin()) {
+      $return[] = array(
+        'msg'=>"You must be an administrator to do this.",
+        'level'=>2
+      );
+      return $return;
+    }
+    if (!$info) {
+      $return[] = array(
+        'msg'=>"Error: Unable to locate event.",
+        'level'=>2
+      );
+      return $return;
+    }
   }
 
 }

@@ -12,19 +12,43 @@ $canedit = $shiftclass->userCanEdit($event->id);
   <li class="active"><?php echo $event->name;?></li>
 </ol>
 
+<div class="page-header">
+  <h1><?php echo $event->name;?>
+    <small><?php echo singular($event->duration,'Hour','Hours'); ?>
+    <?php if ($user->isAdmin()){
+        echo modal('Are you sure you want to cancel this event?',
+          "cancelevent$event->id",
+          "Cancel $event->name",
+          "?action=cancelEvent&event=$event->id");
+        $btn = " <a href='#' class='btn btn-danger'";
+        $btn.= "data-toggle='modal'";
+        $btn.= "data-target='#cancelevent$event->id'>";
+        $btn.= "Cancel Event ".icon('remove')."</a>";
+        echo $btn;
+      } ?>
+    </small>
+  </h1>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <strong>Starts</strong>
+    <h1><?php echo timestamp($event->start); ?></h1>
+  </div>
+
+  <div class="col-md-6">
+    <strong>Ends</strong>
+    <h1><?php echo timestamp($event->end); ?></h1>
+  </div>
+</div>
+
+<p class="lead"><?php echo $event->description;?></p>
+
+<hr />
+
+<h2>Shifts <small>Shifts in blue are scheduled to begin before or end after their parent event.</small></h2>
+
 <?php
-echo "<div class='page-header'><h1>$event->name <small>";
-echo singular($event->duration,'Hour','Hours')."</small></h1></div>";
-echo "<div class='row'><div class='col-md-6'><strong>Begins</strong>";
-echo "<h1>".timestamp($event->start)."</h1></div><div class='col-md-6'>";
-echo "<strong>Ends</strong>";
-echo "<h1>".timestamp($event->end)."</h1></div></div>";
-echo "<p class='lead'>$event->description</p>";
-
-echo "<hr />";
-
-echo "<h2>Shifts <small>Shifts in blue are scheduled to begin before or end after their parent event.</small></h2>";
-
 echo tableHeader(array('Team',
   'Start',
   'End',
@@ -41,7 +65,14 @@ foreach ($shifts as $shift) {
   }
   $count = "($shift->slots/$shift->filled) <a href='?action=manageShift&shift=$shift->id'>View</a>";
   if ($canedit){
-    $count.=" <a href='?action=deleteShift&shift=$shift->id&event=$shift->event&verify=1' class='btn btn-danger btn-xs' title='Delete Shift'>Delete Shift ".icon('remove')."</a>";
+    echo modal("Are you sure you want to delete this shift?",
+      "delete$shift->id",
+      "Confirm shift deletion",
+      "?action=deleteShift&shift=$shift->id&event=$shift->event");
+    $count.= " <a href='#' class='btn btn-xs btn-danger' data-toggle='modal'";
+    $count.= "data-target='#delete$shift->id'>";
+    $count.= "Delete Shift ".icon('remove')."</a>";
+    
   }
   echo tableCells(array(
     teamLink($shift->teamname, $shift->teamid),

@@ -1,7 +1,10 @@
 <?php
 var_dump(generatePasswordResetLink());
-$slot = new slot();
-var_dump($slot->canuserclaimSlot(6));
-var_dump($slot->canuserclaimSlot(7));
-var_dump($slot->canuserclaimSlot(8));
-var_dump($slot->isUserOnShift(11,1));
+
+echo modal('Test modal','test','Test Modal','index.php','index.php');
+
+?>
+
+<button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#test">
+  Launch demo modal
+</button>
