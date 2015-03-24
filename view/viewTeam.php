@@ -21,7 +21,27 @@ $teaminfo = $team->viewTeam($_GET['team']);
   if ($user->isAdmin()) {
     echo " (<a href='?action=designateLead&team=$teaminfo->id'>Designate</a>)";
   }
-  echo "</small>";?>
+  echo "</small>";
+
+  $onteam = FALSE;
+  $membership = explode(',',$teaminfo->members);
+  if (in_array($_SESSION['userid'],$membership)){
+    $onteam = TRUE;
+  }
+  if (TRUE == $onteam) {
+    $button = '';
+  } elseif (FALSE == $teaminfo->openjoin) {
+    $button = "<a href='?action=joinTeam&team=$teaminfo->id' class='btn btn-success pull-right'>";
+    $button.="Apply for team</a>";   
+  } else {
+    $button = "<a href='?action=joinTeam&team=$teaminfo->id' class='btn btn-success pull-right'>";
+    $button.="Join team</a>";    
+  }
+
+  echo $button;
+
+  ?>
+
   </h1>
 </div>
   <p class="lead"><?php echo $teaminfo->description; ?></p>

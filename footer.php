@@ -11,8 +11,9 @@
           ?>
         </p>
         <?php 
-        echo "<p>";
+
         if(DEBUG === true) {
+        echo "<hr><p><strong>Debug info</strong>";
           echo "<div class='row'><div class='col-md-4'>GET";
           var_dump($_GET);
           echo "</div><div class='col-md-4'>POST";
@@ -20,8 +21,8 @@
           echo "</div><div class='col-md-4'>SESSION";
           var_dump($_SESSION);
           echo "</div></div>";
-        }
         echo "</p>";
+        }
         ?>
       </footer>
     </div>

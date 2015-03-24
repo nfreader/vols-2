@@ -12,7 +12,7 @@
 $team = new team();
 
 $teams = $team->listTeams();
-echo tableHeader(array('Name','Description','Members','Lead','Join'),'sort');
+echo tableHeader(array('Name','Description','Members','Lead','Membership'),'sort');
 foreach ($teams as $team){
   $name = "<a href='?action=viewTeam&team=$team->id'>$team->name</a>";
 
