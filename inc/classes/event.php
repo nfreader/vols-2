@@ -12,7 +12,7 @@ class event {
     }
     if ($end < $start) {
       $return[] = array(
-        'msg'=>"Those dates don't make any sense: $start vs. $end",
+        'msg'=>"These dates don't make any sense: $start vs. $end",
         'level'=>2
       );
       return $return;
@@ -28,7 +28,7 @@ class event {
     $start = validate($start);
     if ('' === $start) {
       $return[] = array(
-        'msg'=>'When does your event start?',
+        'msg'=>'When does this event start?',
         'level'=>2
       );
       return $return; 
@@ -36,7 +36,7 @@ class event {
     $end = validate($end);
     if ('' === $end) {
       $return[] = array(
-        'msg'=>'When does your event start?',
+        'msg'=>'When does this event start?',
         'level'=>2
       );
       return $return; 
@@ -65,7 +65,26 @@ class event {
         FROM tbl_event
         ORDER BY tbl_event.start ASC");
     $db->execute();
-    return $db->resultset();
+    $events = $db->resultset();
+    $return = tableHeader(array('Name','Start','End','Duration','Location'),'sort');
+
+    if (!$events) {
+      $return.= emptyTable('No events scheduled',5);
+      $return.= tableFooter();
+      return $return;
+    }
+
+    foreach ($events as $event) {
+      $return.= tableCells(array(
+        "<a href='?action=viewEvent&event=$event->id'>$event->name</a>", 
+        timestamp($event->start), 
+        timestamp($event->end), 
+        singular($event->duration,'Hour','Hours'), 
+        icon('map-marker')." <a href='https://www.google.com/maps/place/".urlencode($event->location)."' target='_blank'>$event->location</a>"
+      ));
+    }
+    $return.= tableFooter();
+    echo $return;
   }
   public function getEvent($event) {
     $db = new database();
